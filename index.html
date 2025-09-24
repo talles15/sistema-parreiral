@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sistema completo para calcular custos de aplicações em parreiral. Ferramenta gratuita para gestão agrícola.">
+    <meta name="keywords" content="parreiral, custos, agricultura, gestão agrícola, aplicações, defensivos, calculadora">
+    <meta name="author" content="Sistema Parreiral">
+    
+    <title>🍇 Sistema de Custos do Parreiral</title>
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Sistema de Custos do Parreiral">
+    <meta property="og:description" content="Calcule e controle os custos das aplicações no seu parreiral de forma simples e eficiente">
+    <meta property="og:image" content="https://via.placeholder.com/1200x630/2d5016/ffffff?text=Sistema+Parreiral">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="Sistema de Custos do Parreiral">
+    <meta property="twitter:description" content="Ferramenta gratuita para gestão de custos agrícolas">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzJkNTAxNiIvPgo8dGV4dCB4PSI1IiB5PSIyMyIgZm9udC1zaXplPSIyNCIgZmlsbD0id2hpdGUiPvCfj4M8L3RleHQ+Cjwvc3ZnPgo=">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-green: #2d5016;
+            --light-green: #5a8f37;
+            --success-green: #28a745;
+            --info-blue: #17a2b8;
+            --danger-red: #dc3545;
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --dark-gray: #495057;
+            --white: #ffffff;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .github-corner {
+            position: fixed;
+            top: 0;
+            right: 0;
+            z-index: 1000;
+            border: 0;
+            color: var(--white);
+            text-decoration: none;
+        }
+
+        .github-corner svg {
+            fill: var(--primary-green);
+            color: var(--white);
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 80px;
+            height: 80px;
+        }
+
+        .github-corner:hover .octo-arm {
+            animation: octocat-wave 560ms ease-in-out;
+        }
+
+        @keyframes octocat-wave {
+            0%, 20%, 60%, 100% { transform: rotate(0); }
+            40%, 80% { transform: rotate(-25deg); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 20px auto;
+            background: var(--white);
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--light-green) 100%);
+            color: var(--white);
+            text-align: center;
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1.5" fill="rgba(255,255,255,0.08)"/><circle cx="50" cy="10" r="0.8" fill="rgba(255,255,255,0.12)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: clamp(1rem, 3vw, 1.25rem);
+            opacity: 0.95;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .version-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .tabs {
+            display: flex;
+            background: var(--light-gray);
+            border-bottom: 2px solid var(--medium-gray);
+            overflow-x: auto;
+        }
+
+        .tab {
+            flex: 1;
+            min-width: 180px;
+            padding: 20px 15px;
+            background: var(--light-gray);
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--dark-gray);
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            background: var(--medium-gray);
+            color: var(--primary-green);
+            transform: translateY(-2px);
+        }
+
+        .tab.active {
+            background: var(--white);
+            color: var(--primary-green);
+            border-bottom: 3px solid var(--light-green);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section {
+            background: var(--light-gray);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 5px solid var(--light-green);
+            box-shadow: var(--shadow);
+            transition: transform 0.2s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-2px);
+        }
+
+        .section h3 {
+            color: var(--primary-green);
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            color: var(--dark-gray);
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        input, select {
+            padding: 14px;
+            border: 2px solid var(--medium-gray);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--white);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--light-green);
+            box-shadow: 0 0 0 3px rgba(90, 143, 55, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--light-green) 0%, var(--primary-green) 100%);
+            color: var(--white);
+            border: none;
+            padding: 14px 28px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 8px 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(45, 80, 22, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-red) 0%, #c82333 100%);
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, var(--info-blue) 0%, #138496 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-green) 0%, #218838 100%);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        th, td {
+            padding: 16px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+
+        th {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--light-green) 100%);
+            color: var(--white);
+            font-weight: 600;
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tr {
+            transition: background-color 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: rgba(90, 143, 55, 0.05);
+        }
+
+        .cost-highlight {
+            background: linear-gradient(135deg, var(--success-green) 0%, #20c997 100%);
+            color: var(--white);
+            font-weight: bold;
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, var(--info-blue) 0%, #138496 100%);
+            color: var(--white);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .summary-card h4 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .summary-card .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .alert {
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 4px solid;
+            box-shadow: var(--shadow);
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-color: #bee5eb;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-color: #ffeeba;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s ease;
+            border-top: 4px solid var(--light-green);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-card .stat-number {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: var(--primary-green);
+            margin-bottom: 8px;
+        }
+
+        .stat-card .stat-label {
+            color: var(--dark-gray);
+            font-weight: 600;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid var(--medium-gray);
+            border-top: 3px solid var(--light-green);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .footer {
+            background: var(--primary-green);
+            color: var(--white);
+            text-align: center;
+            padding: 30px 20px;
+            margin-top: 40px;
+        }
+
+        .footer p {
+            margin-bottom: 10px;
+        }
+
+        .footer a {
+            color: #90ee90;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .header {
+                padding: 30px 15px;
+            }
+            
+            .tab-content {
+                padding: 20px 15px;
+            }
+            
+            .form-group {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .tabs {
+                flex-wrap: wrap;
+            }
+            
+            .tab {
+                min-width: auto;
+                flex: 1 1 33.333%;
+            }
+            
+            .section {
+                padding: 20px 15px;
+            }
+            
+            .version-badge {
+                position: static;
+                display: inline-block;
+                margin-top: 15px;
+            }
+            
+            .github-corner svg {
+                width: 60px;
+                height: 60px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            table {
+                font-size: 0.9em;
+            }
+            
+            th, td {
+                padding: 12px 8px;
+            }
+        }
+
+        /* Animações de entrada */
+        .fade-in {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Tema escuro para dispositivos que preferem */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+            }
+            
+            .github-corner,
+            .tabs,
+            .btn {
+                display: none;
+            }
+            
+            .container {
+                box-shadow: none;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- GitHub Corner -->
+    <a href="https://github.com/seu-usuario/sistema-parreiral" class="github-corner" aria-label="Ver no GitHub">
+        <svg viewBox="0 0 250 250">
+            <path d="m0,0 0,250 250,0 0,-250z" fill="currentColor"/>
+            <path d="m127.5,110c-5.3,0 -9.5,4.2 -9.5,9.5 0,5.3 4.2,9.5 9.5,9.5 5.3,0 9.5,-4.2 9.5,-9.5 0,-5.3 -4.2,-9.5 -9.5,-9.5z" fill="currentColor"/>
+            <path class="octo-arm" d="m115,115 0,25c0,10 -5,15 -15,15l-10,0c-5,0 -5,5 0,5l10,0c15,0 25,-10 25,-25l0,-15c0,-5 0,-10 5,-10 5,0 5,5 5,10l0,25c0,10 5,15 15,15l10,0c5,0 5,-5 0,-5l-10,0c-10,0 -15,-5 -15,-15l0,-25c0,-10 -10,-10 -20,-10z" fill="#fff" style="transform-origin: 130px 110px;"/>
+            <path class="octo-body" d="m112.5,115c-2.5,0 -5,2.5 -5,5 0,2.5 2.5,5 5,5 2.5,0 5,-2.5 5,-5 0,-2.5 -2.5,-5 -5,-5zm15,-10c0,-5 -5,-10 -10,-10 -5,0 -10,5 -10,10 0,5 5,10 10,10 5,0 10,-5 10,-10z" fill="#fff"/>
+        </svg>
+    </a>
+
+    <div class="container fade-in">
+        <div class="header">
+            <div class="version-badge">v2.0</div>
+            <div class="header-content">
+                <h1>🍇 Sistema de Custos do Parreiral</h1>
+                <p>Ferramenta completa para calcular e controlar os custos das aplicações no seu parreiral</p>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('aplicacoes')">📊 Aplicações</button>
+            <button class="tab" onclick="showTab('produtos')">💰 Produtos</button>
+            <button class="tab" onclick="showTab('relatorio')">📈 Relatórios</button>
+            <button class="tab" onclick="showTab('sobre')">ℹ️ Sobre</button>
+        </div>
+
+        <!-- ABA APLICAÇÕES -->
+        <div id="aplicacoes" class="tab-content active">
+            <div class="section">
+                <h3>📝 Nova Aplicação</h3>
+                <div class="form-group">
+                    <div class="input-group">
+                        <label>Data da Aplicação</label>
+                        <input type="date" id="dataAplicacao" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Área (hectares)</label>
+                        <input type="number" id="areaHectares" step="0.01" placeholder="Ex: 2.5" required min="0.01">
+                    </div>
+                    <div class="input-group">
+                        <label>Descrição</label>
+                        <input type="text" id="descricaoAplicacao" placeholder="Ex: Tratamento fungicida">
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>🧪 Produtos Utilizados</h3>
+                <div class="form-group">
+                    <div class="input-group">
+                        <label>Produto</label>
+                        <select id="produtoSelect">
+                            <option value="">🔍 Selecione um produto</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Dose por Hectare</label>
+                        <input type="number" id="dosePorHa" step="0.001" placeholder="Ex: 2.5" min="0.001">
+                    </div>
+                    <div class="input-group">
+                        <label>Unidade</label>
+                        <select id="unidadeDose">
+                            <option value="L">Litros (L)</option>
+                            <option value="kg">Quilogramas (kg)</option>
+                            <option value="mL">Mililitros (mL)</option>
+                            <option value="g">Gramas (g)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button class="btn btn-success" onclick="adicionarProdutoAplicacao()">
+                    ➕ Adicionar Produto
+                </button>
+                
+                <div id="produtosAplicacao" style="margin-top: 20px;">
+                    <h4>Produtos Adicionados:</h4>
+                    <table id="tabelaProdutosAplicacao">
+                        <thead>
+                            <tr>
+                                <th>Produto</th>
+                                <th>Dose/ha</th>
+                                <th>Qtd Total</th>
+                                <th>Custo/ha</th>
+                                <th>Custo Total</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                
+                <button class="btn" onclick="salvarAplicacao()" style="margin-top: 20px;">
+                    💾 Salvar Aplicação
+                </button>
+            </div>
+
+            <div class="section">
+                <h3>📋 Histórico de Aplicações</h3>
+                <div class="loading" id="loadingAplicacoes">
+                    <div class="spinner"></div>
+                    <p>Carregando aplicações...</p>
+                </div>
+                <table id="tabelaAplicacoes">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Descrição</th>
+                            <th>Área (ha)</th>
+                            <th>Produtos</th>
+                            <th>Custo Total</th>
+                            <th>Custo/ha</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ABA PRODUTOS -->
+        <div id="produtos" class="tab-content">
+            <div class="section">
+                <h3>💰 Cadastro de Preços</h3>
+                <div class="form-group">
+                    <div class="input-group">
+                        <label>Nome do Produto</label>
+                        <input type="text" id="nomeProduto" placeholder="Ex: Fungicida ABC">
+                    </div>
+                    <div class="input-group">
+                        <label>Preço por Unidade (R$)</label>
+                        <input type="number" id="precoProduto" step="0.01" placeholder="Ex: 45.90" min="0.01">
+                    </div>
+                    <div class="input-group">
+                        <label>Unidade</label>
+                        <select id="unidadeProduto">
+                            <option value="L">Litros (L)</option>
+                            <option value="kg">Quilogramas (kg)</option>
+                            <option value="mL">Mililitros (mL)</option>
+                            <option value="g">Gramas (g)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button class="btn btn-success" onclick="adicionarProduto()">
+                    ➕ Adicionar Produto
+                </button>
+            </div>
+
+            <div class="section">
+                <h3>📊 Lista de Produtos</h3>
+                <div class="loading" id="loadingProdutos">
+                    <div class="spinner"></div>
+                    <p>Carregando produtos...</p>
+                </div>
+                <table id="tabelaProdutos">
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Preço Unitário</th>
+                            <th>Unidade</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ABA RELATÓRIO -->
+        <div id="relatorio" class="tab-content">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalAplicacoes">0</div>
+                    <div class="stat-label">Aplicações</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="areaTotal">0 ha</div>
+                    <div class="stat-label">Área Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="custoTotal">R$ 0,00</div>
+                    <div class="stat-label">Custo Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="custoMedio">R$ 0,00</div>
+                    <div class="stat-label">Custo Médio/ha</div>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 30px;">
+                <div class="input-group">
+                    <label>📅 Data Inicial</label>
+                    <input type="date" id="dataInicial">
+                </div>
+                <div class="input-group">
+                    <label>📅 Data Final</label>
+                    <input type="date" id="dataFinal">
+                </div>
+                <div class="input-group" style="display: flex; align-items: end;">
+                    <button class="btn btn-info" onclick="gerarRelatorio()">
+                        📊 Gerar Relatório
+                    </button>
+                </div>
+            </div>
+
+            <div id="relatorioResultado"></div>
+        </div>
+
+        <!-- ABA SOBRE -->
+        <div id="sobre" class="tab-content">
+            <div class="section">
+                <h3>ℹ️ Sobre o Sistema</h3>
+                <p style="margin-bottom: 20px; font-size: 1.1em; line-height: 1.8;">
+                    O <strong>Sistema de Custos do Parreiral</strong> é uma ferramenta gratuita desenvolvida para ajudar 
+                    produtores de uva a calcular e controlar os custos das aplicações em seus vinhedos de forma simples e eficiente.
+                </p>
+                
+                <h4 style="color: var(--primary-green); margin-top: 25px; margin-bottom: 15px;">🎯 Funcionalidades</h4>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin-bottom: 10px;">✅ <strong>Cadastro de Produtos:</strong> Registre defensivos, fertilizantes e adjuvantes</li>
+                    <li style="margin-bottom: 10px;">✅ <strong>Múltiplos Produtos:</strong> Adicione vários produtos por aplicação</li>
+                    <li style="margin-bottom: 10px;">✅ <strong>Cálculo Automático:</strong> Conversão de unidades e custos em tempo real</li>
+                    <li style="margin-bottom: 10px;">✅ <strong>Controle por Hectare:</strong> Acompanhe custos por área tratada</li>
+                    <li style="margin-bottom: 10px;">✅ <strong>Histórico Completo:</strong> Visualize todas as aplicações realizadas</li>
+                    <li style="margin-bottom: 10px;">✅ <strong>Relatórios Detalhados:</strong> Análise por período e resumos executivos</li>
+                    <li style="margin-bottom: 10px;">✅ <strong>Exportação de Dados:</strong> Backup completo em JSON</li>
+                </ul>
+
+                <h4 style="color: var(--primary-green); margin-top: 25px; margin-bottom: 15px;">🚀 Como Usar</h4>
+                <div style="background: var(--light-gray); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <ol style="line-height: 1.8;">
+                        <li><strong>Cadastre os Produtos:</strong> Vá na aba "Produtos" e adicione todos os defensivos, fertilizantes e adjuvantes que você usa</li>
+                        <li><strong>Registre as Aplicações:</strong> Na aba "Aplicações", adicione cada tratamento realizado no parreiral</li>
+                        <li><strong>Acompanhe os Custos:</strong> O sistema calcula automaticamente todos os valores</li>
+                        <li><strong>Analise os Resultados:</strong> Use a aba "Relatórios" para análises detalhadas</li>
+                    </ol>
+                </div>
+
+                <h4 style="color: var(--primary-green); margin-top: 25px; margin-bottom: 15px;">💡 Dicas Importantes</h4>
+                <div class="alert alert-info">
+                    <strong>🔸 Unidades:</strong> O sistema converte automaticamente entre L/mL e kg/g<br>
+                    <strong>🔸 Backup:</strong> Seus dados ficam salvos no navegador - use a função exportar para backup<br>
+                    <strong>🔸 Precisão:</strong> Use até 3 casas decimais para doses (ex: 2.500 L/ha)<br>
+                    <strong>🔸 Mobile:</strong> Sistema totalmente responsivo para uso em campo
+                </div>
+
+                <h4 style="color: var(--primary-green); margin-top: 25px; margin-bottom: 15px;">📊 Exemplo Prático</h4>
+                <div style="background: #e8f5e8; padding: 20px; border-radius: 10px; border-left: 4px solid var(--success-green);">
+                    <p><strong>Cenário:</strong> Tratamento fungicida em 2,5 hectares</p>
+                    <p><strong>Produtos:</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li>Fungicida Azoxistrobina: 1,5 L/ha × R$ 89,50/L = R$ 134,25/ha</li>
+                        <li>Adjuvante Espalhante: 0,5 L/ha × R$ 18,75/L = R$ 9,38/ha</li>
+                    </ul>
+                    <p><strong>Resultado:</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li>Custo por hectare: R$ 143,63</li>
+                        <li>Custo total: R$ 359,08 (2,5 ha × R$ 143,63)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>⚙️ Recursos Técnicos</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                    <div style="background: var(--white); padding: 20px; border-radius: 10px; box-shadow: var(--shadow);">
+                        <h5 style="color: var(--primary-green); margin-bottom: 15px;">🌐 Tecnologias</h5>
+                        <ul style="list-style: none; padding: 0; line-height: 1.8;">
+                            <li>• HTML5 / CSS3</li>
+                            <li>• JavaScript ES6+</li>
+                            <li>• LocalStorage API</li>
+                            <li>• Responsive Design</li>
+                            <li>• PWA Ready</li>
+                        </ul>
+                    </div>
+                    <div style="background: var(--white); padding: 20px; border-radius: 10px; box-shadow: var(--shadow);">
+                        <h5 style="color: var(--primary-green); margin-bottom: 15px;">📱 Compatibilidade</h5>
+                        <ul style="list-style: none; padding: 0; line-height: 1.8;">
+                            <li>• Chrome / Edge / Firefox</li>
+                            <li>• Safari (iOS/macOS)</li>
+                            <li>• Mobile Browsers</li>
+                            <li>• Tablets</li>
+                            <li>• Offline (após carregamento)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>🛠️ Ferramentas de Gestão</h3>
+                <div class="form-group">
+                    <button class="btn btn-info" onclick="exportarDados()">
+                        📤 Exportar Dados
+                    </button>
+                    <button class="btn btn-success" onclick="document.getElementById('importFile').click()">
+                        📥 Importar Dados
+                    </button>
+                    <button class="btn btn-danger" onclick="limparTodosDados()">
+                        🗑️ Limpar Dados
+                    </button>
+                </div>
+                <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importarDados(event)">
+                
+                <div class="alert alert-warning" style="margin-top: 20px;">
+                    <strong>⚠️ Importante:</strong> Faça backup regular dos seus dados usando a função "Exportar Dados". 
+                    Os dados ficam salvos apenas no seu navegador.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>🍇 <strong>Sistema de Custos do Parreiral</strong> - Versão 2.0</p>
+        <p>Desenvolvido com ❤️ para a agricultura brasileira</p>
+        <p>
+            <a href="https://github.com/seu-usuario/sistema-parreiral" target="_blank">GitHub</a> | 
+            <a href="https://github.com/seu-usuario/sistema-parreiral/issues" target="_blank">Reportar Bug</a> | 
+            <a href="mailto:contato@exemplo.com">Contato</a>
+        </p>
+        <p style="font-size: 0.9em; opacity: 0.8; margin-top: 15px;">
+            © 2024 - Software Livre sob Licença MIT
+        </p>
+    </div>
+
+    <script>
+        // ===== VARIÁVEIS GLOBAIS =====
+        let produtos = [];
+        let aplicacoes = [];
+        let produtosAplicacaoAtual = [];
+
+        // ===== INICIALIZAÇÃO =====
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🍇 Sistema Parreiral v2.0 iniciado');
+            
+            // Definir data atual
+            const hoje = new Date();
+            document.getElementById('dataAplicacao').value = hoje.toISOString().split('T')[0];
+            
+            // Carregar dados
+            carregarDados();
+            
+            // Adicionar dados de exemplo se não houver produtos
+            if (produtos.length === 0) {
+                adicionarDadosExemplo();
+            }
+            
+            // Atualizar interfaces
+            atualizarSelectProdutos();
+            atualizarTabelaProdutos();
+            atualizarTabelaAplicacoes();
+            atualizarTabelaProdutosAplicacao();
+            atualizarEstatisticas();
+            
+            // Adicionar event listeners
+            document.getElementById('areaHectares').addEventListener('input', atualizarTabelaProdutosAplicacao);
+            
+            console.log('✅ Sistema inicializado com sucesso');
+        });
+
+        // ===== GERENCIAMENTO DE ABAS =====
+        function showTab(tabName) {
+            try {
+                // Remover classe active de todas as abas
+                document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                
+                // Encontrar e ativar a aba clicada
+                const tabs = document.querySelectorAll('.tab');
+                const tabNames = {
+                    'aplicacoes': '📊 Aplicações',
+                    'produtos': '💰 Produtos',
+                    'relatorio': '📈 Relatórios',
+                    'sobre': 'ℹ️ Sobre'
+                };
+                
+                tabs.forEach(tab => {
+                    if (tab.textContent.includes(tabNames[tabName] || tabName)) {
+                        tab.classList.add('active');
+                    }
+                });
+                
+                // Mostrar conteúdo da aba
+                const tabContent = document.getElementById(tabName);
+                if (tabContent) {
+                    tabContent.classList.add('active');
+                } else {
+                    console.error('Aba não encontrada:', tabName);
+                    return;
+                }
+                
+                // Atualizar dados específicos da aba
+                if (tabName === 'relatorio') {
+                    atualizarEstatisticas();
+                }
+                
+                // Scroll para o topo
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                
+            } catch (error) {
+                console.error('Erro ao trocar aba:', error);
+                alert('Erro ao carregar a aba. Recarregue a página.');
+            }
+        }
+
+        // ===== GESTÃO DE PRODUTOS =====
+        function adicionarProduto() {
+            const nome = document.getElementById('nomeProduto').value.trim();
+            const preco = parseFloat(document.getElementById('precoProduto').value);
+            const unidade = document.getElementById('unidadeProduto').value;
+
+            if (!nome || nome.length < 2) {
+                alert('❌ Digite um nome válido para o produto (mínimo 2 caracteres)!');
+                return;
+            }
+
+            if (!preco || preco <= 0) {
+                alert('❌ Digite um preço válido maior que zero!');
+                return;
+            }
+
+            // Verificar se produto já existe
+            const produtoExistente = produtos.find(p => 
+                p.nome.toLowerCase().trim() === nome.toLowerCase().trim()
+            );
+            
+            if (produtoExistente) {
+                if (confirm(`⚠️ O produto "${nome}" já existe com preço R$ ${produtoExistente.preco.toFixed(2)}.\n\nDeseja atualizar para R$ ${preco.toFixed(2)}?`)) {
+                    produtoExistente.preco = preco;
+                    produtoExistente.unidade = unidade;
+                    salvarDados();
+                    
+                    limparCamposProduto();
+                    atualizarTabelaProdutos();
+                    atualizarSelectProdutos();
+                    
+                    mostrarNotificacao('✅ Produto atualizado com sucesso!', 'success');
+                }
+                return;
+            }
+
+            const produto = {
+                id: Date.now(),
+                nome: nome,
+                preco: preco,
+                unidade: unidade,
+                dataAdicao: new Date().toISOString()
+            };
+
+            produtos.push(produto);
+            salvarDados();
+            
+            limparCamposProduto();
+            atualizarTabelaProdutos();
+            atualizarSelectProdutos();
+            
+            mostrarNotificacao(`✅ Produto "${nome}" adicionado com sucesso!`, 'success');
+        }
+
+        function limparCamposProduto() {
+            document.getElementById('nomeProduto').value = '';
+            document.getElementById('precoProduto').value = '';
+            document.getElementById('unidadeProduto').value = 'L';
+        }
+
+        function removerProduto(id) {
+            const produto = produtos.find(p => p.id === id);
+            if (!produto) return;
+
+            if (confirm(`⚠️ Tem certeza que deseja remover "${produto.nome}"?\n\nEsta ação não pode ser desfeita.`)) {
+                produtos = produtos.filter(p => p.id !== id);
+                salvarDados();
+                atualizarTabelaProdutos();
+                atualizarSelectProdutos();
+                mostrarNotificacao('✅ Produto removido com sucesso!', 'success');
+            }
+        }
+
+        function atualizarTabelaProdutos() {
+            const tbody = document.querySelector('#tabelaProdutos tbody');
+            tbody.innerHTML = '';
+
+            if (produtos.length === 0) {
+                const row = tbody.insertRow();
+                row.innerHTML = '<td colspan="4" style="text-align: center; color: #666; font-style: italic; padding: 30px;">Nenhum produto cadastrado</td>';
+                return;
+            }
+
+            produtos.forEach(produto => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>
+                        <strong>${produto.nome}</strong>
+                        <br><small style="color: #666; font-size: 0.85em;">ID: ${produto.id}</small>
+                    </td>
+                    <td style="text-align: center; color: var(--success-green); font-weight: bold;">
+                        R$ ${produto.preco.toFixed(2)}
+                    </td>
+                    <td style="text-align: center;">
+                        <span style="background: var(--light-green); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.85em;">
+                            ${produto.unidade}
+                        </span>
+                    </td>
+                    <td style="text-align: center;">
+                        <button class="btn btn-danger" onclick="removerProduto(${produto.id})" style="padding: 8px 12px; font-size: 0.85em;">
+                            🗑️ Remover
+                        </button>
+                    </td>
+                `;
+                row.style.animation = 'fadeIn 0.3s ease-in';
+            });
+        }
+
+        function atualizarSelectProdutos() {
+            const select = document.getElementById('produtoSelect');
+            select.innerHTML = '<option value="">🔍 Selecione um produto</option>';
+
+            if (produtos.length === 0) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = '⚠️ Nenhum produto cadastrado - Vá para a aba "Produtos"';
+                option.disabled = true;
+                select.appendChild(option);
+                return;
+            }
+
+            produtos.forEach(produto => {
+                const option = document.createElement('option');
+                option.value = produto.id;
+                option.textContent = `${produto.nome} - R$ ${produto.preco.toFixed(2)}/${produto.unidade}`;
+                select.appendChild(option);
+            });
+        }
+
+        // ===== GESTÃO DE APLICAÇÕES =====
+        function adicionarProdutoAplicacao() {
+            const produtoId = document.getElementById('produtoSelect').value;
+            const dose = parseFloat(document.getElementById('dosePorHa').value);
+            const unidadeDose = document.getElementById('unidadeDose').value;
+
+            if (!produtoId || !dose || dose <= 0) {
+                alert('❌ Selecione um produto e informe uma dose válida!');
+                return;
+            }
+
+            // Verificar se produto já foi adicionado
+            const produtoJaAdicionado = produtosAplicacaoAtual.find(p => p.produto.id == produtoId);
+            if (produtoJaAdicionado) {
+                alert('⚠️ Este produto já foi adicionado a esta aplicação!');
+                return;
+            }
+
+            const produto = produtos.find(p => p.id == produtoId);
+            if (!produto) {
+                alert('❌ Produto não encontrado!');
+                return;
+            }
+
+            // Verificar compatibilidade de unidades
+            if (produto.unidade !== unidadeDose) {
+                if (!confirm(`⚠️ Atenção: O produto ${produto.nome} está cadastrado em ${produto.unidade}, mas você está usando ${unidadeDose}.\n\nO sistema fará a conversão automaticamente. Deseja continuar?`)) {
+                    return;
+                }
+            }
+
+            const produtoAplicacao = {
+                id: Date.now(),
+                produto: {...produto},
+                dose: dose,
+                unidadeDose: unidadeDose
+            };
+
+            produtosAplicacaoAtual.push(produtoAplicacao);
+            
+            // Limpar campos
+            document.getElementById('produtoSelect').value = '';
+            document.getElementById('dosePorHa').value = '';
+            document.getElementById('unidadeDose').value = 'L';
+            
+            atualizarTabelaProdutosAplicacao();
+            mostrarNotificacao('✅ Produto adicionado à aplicação!', 'success');
+        }
+
+        function removerProdutoAplicacao(id) {
+            produtosAplicacaoAtual = produtosAplicacaoAtual.filter(p => p.id !== id);
+            atualizarTabelaProdutosAplicacao();
+            mostrarNotificacao('✅ Produto removido da aplicação!', 'success');
+        }
+
+        function atualizarTabelaProdutosAplicacao() {
+            const tbody = document.querySelector('#tabelaProdutosAplicacao tbody');
+            tbody.innerHTML = '';
+
+            const area = parseFloat(document.getElementById('areaHectares').value) || 0;
+            let custoTotalAplicacao = 0;
+
+            if (produtosAplicacaoAtual.length === 0) {
+                const row = tbody.insertRow();
+                row.innerHTML = '<td colspan="6" style="text-align: center; color: #666; font-style: italic; padding: 20px;">Nenhum produto adicionado</td>';
+                return;
+            }
+
+            produtosAplicacaoAtual.forEach(item => {
+                // Conversão de unidades se necessário
+                let fatorConversao = 1;
+                if (item.produto.unidade !== item.unidadeDose) {
+                    if (item.produto.unidade === 'L' && item.unidadeDose === 'mL') {
+                        fatorConversao = 1000;
+                    } else if (item.produto.unidade === 'mL' && item.unidadeDose === 'L') {
+                        fatorConversao = 0.001;
+                    } else if (item.produto.unidade === 'kg' && item.unidadeDose === 'g') {
+                        fatorConversao = 1000;
+                    } else if (item.produto.unidade === 'g' && item.unidadeDose === 'kg') {
+                        fatorConversao = 0.001;
+                    }
+                }
+
+                const doseConvertida = item.dose / fatorConversao;
+                const qtdTotal = item.dose * area;
+                const custoHa = item.produto.preco * doseConvertida;
+                const custoTotal = custoHa * area;
+
+                custoTotalAplicacao += custoTotal;
+
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>
+                        <strong>${item.produto.nome}</strong>
+                        <br><small style="color: #666;">R$ ${item.produto.preco.toFixed(2)}/${item.produto.unidade}</small>
+                        ${fatorConversao !== 1 ? `<br><small style="color: #007bff;">🔄 Conversão aplicada</small>` : ''}
+                    </td>
+                    <td style="text-align: center;">
+                        <strong>${item.dose.toFixed(3)}</strong> ${item.unidadeDose}/ha
+                    </td>
+                    <td style="text-align: center;">
+                        <strong>${qtdTotal.toFixed(3)}</strong> ${item.unidadeDose}
+                    </td>
+                    <td style="text-align: center; color: var(--info-blue); font-weight: bold;">
+                        R$ ${custoHa.toFixed(2)}
+                    </td>
+                    <td class="cost-highlight" style="text-align: center;">
+                        R$ ${custoTotal.toFixed(2)}
+                    </td>
+                    <td style="text-align: center;">
+                        <button class="btn btn-danger" onclick="removerProdutoAplicacao(${item.id})" style="padding: 6px 10px; font-size: 0.8em;">
+                            🗑️
+                        </button>
+                    </td>
+                `;
+            });
+
+            // Adicionar linha de total
+            if (produtosAplicacaoAtual.length > 0 && area > 0) {
+                const custoTotalPorHa = custoTotalAplicacao / area;
+                const rowTotal = tbody.insertRow();
+                rowTotal.innerHTML = `
+                    <td colspan="3" style="text-align: right; font-weight: bold; background: var(--light-gray);">
+                        <strong>TOTAL DA APLICAÇÃO:</strong>
+                    </td>
+                    <td style="text-align: center; font-weight: bold; background: var(--info-blue); color: white;">
+                        R$ ${custoTotalPorHa.toFixed(2)}
+                    </td>
+                    <td style="text-align: center; font-weight: bold; background: var(--success-green); color: white; font-size: 1.1em;">
+                        R$ ${custoTotalAplicacao.toFixed(2)}
+                    </td>
+                    <td style="background: var(--light-gray);"></td>
+                `;
+                rowTotal.style.borderTop = '2px solid var(--success-green)';
+            }
+        }
+
+        function salvarAplicacao() {
+            const data = document.getElementById('dataAplicacao').value;
+            const area = parseFloat(document.getElementById('areaHectares').value);
+            const descricao = document.getElementById('descricaoAplicacao').value || 'Aplicação sem descrição';
+
+            if (!data || !area || area <= 0) {
+                alert('❌ Preencha a data e área corretamente!');
+                return;
+            }
+
+            if (produtosAplicacaoAtual.length === 0) {
+                alert('❌ Adicione pelo menos um produto à aplicação!');
+                return;
+            }
+
+            const aplicacao = {
+                id: Date.now(),
+                data: data,
+                area: area,
+                descricao: descricao,
+                produtos: produtosAplicacaoAtual.map(item => ({
+                    id: item.id,
+                    produto: {...item.produto},
+                    dose: item.dose,
+                    unidadeDose: item.unidadeDose
+                })),
+                dataAdicao: new Date().toISOString()
+            };
+
+            aplicacoes.push(aplicacao);
+            salvarDados();
+            
+            // Limpar formulário
+            document.getElementById('dataAplicacao').value = new Date().toISOString().split('T')[0];
+            document.getElementById('areaHectares').value = '';
+            document.getElementById('descricaoAplicacao').value = '';
+            produtosAplicacaoAtual = [];
+            
+            atualizarTabelaProdutosAplicacao();
+            atualizarTabelaAplicacoes();
+            atualizarEstatisticas();
+            
+            // Calcular e mostrar resumo
+            const custoTotal = calcularCustoAplicacao(aplicacao);
+            const custoHa = custoTotal / area;
+            
+            mostrarNotificacao(
+                `✅ Aplicação salva com sucesso!\n\n` +
+                `📊 Resumo:\n` +
+                `• ${produtosAplicacaoAtual.length} produto(s)\n` +
+                `• Área: ${area.toFixed(2)} ha\n` +
+                `• Custo total: R$ ${custoTotal.toFixed(2)}\n` +
+                `• Custo/ha: R$ ${custoHa.toFixed(2)}`,
+                'success'
+            );
+
+            // Scroll para o histórico
+            document.querySelector('#tabelaAplicacoes').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function removerAplicacao(id) {
+            const aplicacao = aplicacoes.find(a => a.id === id);
+            if (!aplicacao) return;
+
+            if (confirm(`⚠️ Tem certeza que deseja remover a aplicação "${aplicacao.descricao}"?\n\nEsta ação não pode ser desfeita.`)) {
+                aplicacoes = aplicacoes.filter(a => a.id !== id);
+                salvarDados();
+                atualizarTabelaAplicacoes();
+                atualizarEstatisticas();
+                mostrarNotificacao('✅ Aplicação removida com sucesso!', 'success');
+            }
+        }
+
+        function atualizarTabelaAplicacoes() {
+            const tbody = document.querySelector('#tabelaAplicacoes tbody');
+            tbody.innerHTML = '';
+
+            if (aplicacoes.length === 0) {
+                const row = tbody.insertRow();
+                row.innerHTML = '<td colspan="7" style="text-align: center; color: #666; font-style: italic; padding: 30px;">Nenhuma aplicação registrada</td>';
+                return;
+            }
+
+            // Ordenar aplicações por data (mais recentes primeiro)
+            const aplicacoesOrdenadas = [...aplicacoes].sort((a, b) => new Date(b.data) - new Date(a.data));
+
+            aplicacoesOrdenadas.forEach(aplicacao => {
+                const custoTotal = calcularCustoAplicacao(aplicacao);
+                const custoHa = aplicacao.area > 0 ? custoTotal / aplicacao.area : 0;
+                
+                const produtosDetalhes = aplicacao.produtos.map(p => 
+                    `${p.produto.nome} (${p.dose.toFixed(2)} ${p.unidadeDose}/ha)`
+                ).join('<br>');
+
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td style="text-align: center;">
+                        <strong>${new Date(aplicacao.data + 'T00:00:00').toLocaleDateString('pt-BR')}</strong>
+                    </td>
+                    <td>
+                        <strong>${aplicacao.descricao}</strong>
+                    </td>
+                    <td style="text-align: center; color: var(--primary-green); font-weight: bold;">
+                        ${aplicacao.area.toFixed(2)} ha
+                    </td>
+                    <td style="font-size: 0.9em; line-height: 1.4;">
+                        ${produtosDetalhes}
+                        <br><small style="color: #666; margin-top: 5px; display: block;">${aplicacao.produtos.length} produto(s)</small>
+                    </td>
+                    <td class="cost-highlight" style="text-align: center; font-size: 1.1em;">
+                        R$ ${custoTotal.toFixed(2)}
+                    </td>
+                    <td style="text-align: center; color: var(--info-blue); font-weight: bold;">
+                        R$ ${custoHa.toFixed(2)}
+                    </td>
+                    <td style="text-align: center;">
+                        <button class="btn btn-danger" onclick="removerAplicacao(${aplicacao.id})" style="padding: 8px 12px; font-size: 0.85em;">
+                            🗑️ Remover
+                        </button>
+                    </td>
+                `;
+                row.style.animation = 'fadeIn 0.3s ease-in';
+            });
+
+            // Adicionar linha de resumo se houver aplicações
+            if (aplicacoes.length > 0) {
+                const custoTotalGeral = aplicacoes.reduce((total, app) => total + calcularCustoAplicacao(app), 0);
+                const areaTotal = aplicacoes.reduce((total, app) => total + app.area, 0);
+                const custoMedioHa = areaTotal > 0 ? custoTotalGeral / areaTotal : 0;
+
+                const rowResumo = tbody.insertRow();
+                rowResumo.innerHTML = `
+                    <td colspan="2" style="text-align: right; font-weight: bold; background: var(--light-gray); color: var(--primary-green);">
+                        
