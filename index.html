@@ -1370,4 +1370,492 @@
                 const rowResumo = tbody.insertRow();
                 rowResumo.innerHTML = `
                     <td colspan="2" style="text-align: right; font-weight: bold; background: var(--light-gray); color: var(--primary-green);">
+                        📊 RESUMO GERAL:
+                    </td>
+                    <td style="text-align: center; font-weight: bold; background: var(--medium-gray); color: var(--primary-green);">
+                        ${areaTotal.toFixed(2)} ha
+                    </td>
+                    <td style="text-align: center; font-weight: bold; background: var(--medium-gray); color: var(--primary-green);">
+                        ${aplicacoes.length} aplicações
+                    </td>
+                    <td style="text-align: center; font-weight: bold; background: var(--success-green); color: white; font-size: 1.2em;">
+                        R$ ${custoTotalGeral.toFixed(2)}
+                    </td>
+                    <td style="text-align: center; font-weight: bold; background: var(--info-blue); color: white;">
+                        R$ ${custoMedioHa.toFixed(2)}
+                    </td>
+                    <td style="background: var(--light-gray);"></td>
+                `;
+                rowResumo.style.borderTop = '3px solid var(--success-green)';
+                rowResumo.style.fontSize = '1.05em';
+            }
+        }
+
+        function calcularCustoAplicacao(aplicacao) {
+            return aplicacao.produtos.reduce((total, item) => {
+                if (!item.produto || typeof item.produto.preco !== 'number' || 
+                    typeof item.dose !== 'number' || typeof aplicacao.area !== 'number') {
+                    return total;
+                }
+
+                // Conversão de unidades
+                let fatorConversao = 1;
+                if (item.produto.unidade !== item.unidadeDose) {
+                    if (item.produto.unidade === 'L' && item.unidadeDose === 'mL') {
+                        fatorConversao = 1000;
+                    } else if (item.produto.unidade === 'mL' && item.unidadeDose === 'L') {
+                        fatorConversao = 0.001;
+                    } else if (item.produto.unidade === 'kg' && item.unidadeDose === 'g') {
+                        fatorConversao = 1000;
+                    } else if (item.produto.unidade === 'g' && item.unidadeDose === 'kg') {
+                        fatorConversao = 0.001;
+                    }
+                }
+
+                const doseConvertida = item.dose / fatorConversao;
+                const custoItem = item.produto.preco * doseConvertida * aplicacao.area;
+                
+                return total + custoItem;
+            }, 0);
+        }
+
+        // ===== RELATÓRIOS E ESTATÍSTICAS =====
+        function atualizarEstatisticas() {
+            const totalAplicacoesEl = document.getElementById('totalAplicacoes');
+            const areaTotalEl = document.getElementById('areaTotal');
+            const custoTotalEl = document.getElementById('custoTotal');
+            const custoMedioEl = document.getElementById('custoMedio');
+
+            const numAplicacoes = aplicacoes.length;
+            const areaTotal = aplicacoes.reduce((total, app) => total + app.area, 0);
+            const custoTotalGeral = aplicacoes.reduce((total, app) => total + calcularCustoAplicacao(app), 0);
+            const custoMedioHa = areaTotal > 0 ? custoTotalGeral / areaTotal : 0;
+
+            // Animação dos números
+            animarNumero(totalAplicacoesEl, numAplicacoes);
+            animarNumero(areaTotalEl, areaTotal.toFixed(1) + ' ha');
+            animarNumero(custoTotalEl, 'R$ ' + custoTotalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+            animarNumero(custoMedioEl, 'R$ ' + custoMedioHa.toFixed(2));
+        }
+
+        function animarNumero(elemento, valorFinal) {
+            elemento.style.transform = 'scale(1.1)';
+            elemento.style.transition = 'all 0.3s ease';
+            
+            setTimeout(() => {
+                elemento.textContent = valorFinal;
+                elemento.style.transform = 'scale(1)';
+            }, 150);
+        }
+
+        function gerarRelatorio() {
+            const dataInicial = document.getElementById('dataInicial').value;
+            const dataFinal = document.getElementById('dataFinal').value;
+
+            let aplicacoesFiltradas = aplicacoes;
+
+            if (dataInicial && dataFinal) {
+                aplicacoesFiltradas = aplicacoes.filter(aplicacao => {
+                    return aplicacao.data >= dataInicial && aplicacao.data <= dataFinal;
+                });
+            }
+
+            const custoTotal = aplicacoesFiltradas.reduce((total, aplicacao) => {
+                return total + calcularCustoAplicacao(aplicacao);
+            }, 0);
+
+            const areaTotal = aplicacoesFiltradas.reduce((total, aplicacao) => {
+                return total + aplicacao.area;
+            }, 0);
+
+            const custoMedioHa = areaTotal > 0 ? custoTotal / areaTotal : 0;
+
+            // Análise por produto
+            const produtosUsados = {};
+            aplicacoesFiltradas.forEach(aplicacao => {
+                aplicacao.produtos.forEach(item => {
+                    const nomeProduto = item.produto.nome;
+                    if (!produtosUsados[nomeProduto]) {
+                        produtosUsados[nomeProduto] = {
+                            quantidade: 0,
+                            custo: 0,
+                            aplicacoes: 0
+                        };
+                    }
+                    produtosUsados[nomeProduto].quantidade += item.dose * aplicacao.area;
+                    produtosUsados[nomeProduto].custo += item.produto.preco * (item.dose / 
+                        (item.produto.unidade !== item.unidadeDose ? 
+                         (item.produto.unidade === 'L' && item.unidadeDose === 'mL' ? 1000 : 
+                          item.produto.unidade === 'kg' && item.unidadeDose === 'g' ? 1000 : 1) : 1)
+                        ) * aplicacao.area;
+                    produtosUsados[nomeProduto].aplicacoes++;
+                });
+            });
+
+            const tabelaProdutos = Object.entries(produtosUsados)
+                .sort(([,a], [,b]) => b.custo - a.custo)
+                .map(([nome, dados]) => `
+                    <tr>
+                        <td>${nome}</td>
+                        <td style="text-align: center;">${dados.aplicacoes}</td>
+                        <td style="text-align: center;">${dados.quantidade.toFixed(2)}</td>
+                        <td style="text-align: center; color: var(--success-green); font-weight: bold;">R$ ${dados.custo.toFixed(2)}</td>
+                    </tr>
+                `).join('');
+
+            const periodoTexto = dataInicial && dataFinal ? 
+                `${new Date(dataInicial + 'T00:00:00').toLocaleDateString('pt-BR')} a ${new Date(dataFinal + 'T00:00:00').toLocaleDateString('pt-BR')}` : 
+                'Todas as aplicações';
+
+            const resultadoHtml = `
+                <div class="section fade-in">
+                    <h3>📊 Relatório do Período</h3>
+                    <div class="alert alert-info">
+                        <strong>📅 Período analisado:</strong> ${periodoTexto}
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">${aplicacoesFiltradas.length}</div>
+                            <div class="stat-label">Aplicações</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${areaTotal.toFixed(1)} ha</div>
+                            <div class="stat-label">Área Tratada</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">R$ ${custoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+                            <div class="stat-label">Investimento Total</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">R$ ${custoMedioHa.toFixed(2)}</div>
+                            <div class="stat-label">Custo Médio/ha</div>
+                        </div>
+                    </div>
+
+                    <h4 style="color: var(--primary-green); margin-top: 30px; margin-bottom: 20px;">📈 Análise por Produtos</h4>
+                    <table style="margin-bottom: 30px;">
+                        <thead>
+                            <tr>
+                                <th>Produto</th>
+                                <th>Aplicações</th>
+                                <th>Quantidade Total</th>
+                                <th>Investimento</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tabelaProdutos}
+                        </tbody>
+                    </table>
+
+                    <div class="alert alert-success">
+                        <strong>💡 Insights:</strong><br>
+                        • Produto mais utilizado: ${Object.keys(produtosUsados).length > 0 ? Object.entries(produtosUsados).sort(([,a], [,b]) => b.aplicacoes - a.aplicacoes)[0][0] : 'N/A'}<br>
+                        • Maior investimento: ${Object.keys(produtosUsados).length > 0 ? Object.entries(produtosUsados).sort(([,a], [,b]) => b.custo - a.custo)[0][0] : 'N/A'}<br>
+                        • Eficiência média: R$ ${custoMedioHa.toFixed(2)} por hectare tratado
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('relatorioResultado').innerHTML = resultadoHtml;
+        }
+
+        // ===== PERSISTÊNCIA E BACKUP =====
+        function salvarDados() {
+            try {
+                localStorage.setItem('parreiral_produtos', JSON.stringify(produtos));
+                localStorage.setItem('parreiral_aplicacoes', JSON.stringify(aplicacoes));
+                localStorage.setItem('parreiral_backup_date', new Date().toISOString());
+            } catch (error) {
+                console.error('Erro ao salvar dados:', error);
+                mostrarNotificacao('❌ Erro ao salvar dados. Verifique se há espaço suficiente no navegador.', 'error');
+            }
+        }
+
+        function carregarDados() {
+            try {
+                const produtosSalvos = localStorage.getItem('parreiral_produtos');
+                const aplicacoesSalvas = localStorage.getItem('parreiral_aplicacoes');
+
+                if (produtosSalvos && produtosSalvos !== 'undefined') {
+                    produtos = JSON.parse(produtosSalvos);
+                    produtos = produtos.filter(p => p && p.id && p.nome && typeof p.preco === 'number');
+                }
+
+                if (aplicacoesSalvas && aplicacoesSalvas !== 'undefined') {
+                    aplicacoes = JSON.parse(aplicacoesSalvas);
+                    aplicacoes = aplicacoes.filter(a => a && a.id && a.data && a.area && Array.isArray(a.produtos));
+                }
+
+                console.log(`✅ Dados carregados: ${produtos.length} produtos, ${aplicacoes.length} aplicações`);
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                produtos = [];
+                aplicacoes = [];
+                
+                if (confirm('⚠️ Dados corrompidos detectados. Deseja resetar o sistema?')) {
+                    localStorage.removeItem('parreiral_produtos');
+                    localStorage.removeItem('parreiral_aplicacoes');
+                    localStorage.removeItem('parreiral_backup_date');
+                }
+            }
+        }
+
+        function adicionarDadosExemplo() {
+            const produtosExemplo = [
+                { id: 1, nome: 'Fungicida Azoxistrobina', preco: 89.50, unidade: 'L' },
+                { id: 2, nome: 'Inseticida Imidacloprido', preco: 125.00, unidade: 'L' },
+                { id: 3, nome: 'Adubo Foliar NPK', preco: 45.80, unidade: 'kg' },
+                { id: 4, nome: 'Herbicida Glifosato', preco: 32.90, unidade: 'L' },
+                { id: 5, nome: 'Adjuvante Espalhante', preco: 18.75, unidade: 'L' },
+                { id: 6, nome: 'Óleo Mineral', preco: 12.30, unidade: 'L' }
+            ];
+            
+            produtos.push(...produtosExemplo);
+            salvarDados();
+            
+            console.log('📦 Produtos de exemplo adicionados');
+        }
+
+        // ===== EXPORTAÇÃO E IMPORTAÇÃO =====
+        function exportarDados() {
+            const dados = {
+                produtos: produtos,
+                aplicacoes: aplicacoes,
+                versao: '2.0',
+                exportadoEm: new Date().toISOString(),
+                estatisticas: {
+                    totalProdutos: produtos.length,
+                    totalAplicacoes: aplicacoes.length,
+                    areaTotal: aplicacoes.reduce((total, app) => total + app.area, 0),
+                    custoTotal: aplicacoes.reduce((total, app) => total + calcularCustoAplicacao(app), 0)
+                }
+            };
+
+            const dataStr = JSON.stringify(dados, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `parreiral-backup-${new Date().toISOString().split('T')[0]}.json`;
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            mostrarNotificacao('✅ Dados exportados com sucesso!', 'success');
+        }
+
+        function importarDados(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const dados = JSON.parse(e.target.result);
+                    
+                    if (!dados.produtos || !dados.aplicacoes) {
+                        throw new Error('Formato de arquivo inválido');
+                    }
+
+                    if (confirm('⚠️ Importar dados irá substituir todos os dados atuais. Tem certeza?')) {
+                        produtos = dados.produtos || [];
+                        aplicacoes = dados.aplicacoes || [];
                         
+                        salvarDados();
+                        
+                        // Atualizar todas as interfaces
+                        atualizarSelectProdutos();
+                        atualizarTabelaProdutos();
+                        atualizarTabelaAplicacoes();
+                        atualizarTabelaProdutosAplicacao();
+                        atualizarEstatisticas();
+                        
+                        mostrarNotificacao(`✅ Dados importados com sucesso!\n\n${produtos.length} produtos e ${aplicacoes.length} aplicações carregadas.`, 'success');
+                    }
+                } catch (error) {
+                    console.error('Erro ao importar:', error);
+                    mostrarNotificacao('❌ Erro ao importar dados. Verifique se o arquivo é válido.', 'error');
+                }
+            };
+            
+            reader.readAsText(file);
+        }
+
+        function limparTodosDados() {
+            if (confirm('⚠️ ATENÇÃO: Esta ação irá apagar TODOS os dados!\n\nTem certeza absoluta? Esta ação não pode ser desfeita!')) {
+                if (confirm('🚨 ÚLTIMA CONFIRMAÇÃO: Todos os produtos e aplicações serão perdidos!')) {
+                    localStorage.clear();
+                    produtos = [];
+                    aplicacoes = [];
+                    produtosAplicacaoAtual = [];
+                    
+                    // Limpar formulários
+                    document.getElementById('nomeProduto').value = '';
+                    document.getElementById('precoProduto').value = '';
+                    document.getElementById('dataAplicacao').value = new Date().toISOString().split('T')[0];
+                    document.getElementById('areaHectares').value = '';
+                    document.getElementById('descricaoAplicacao').value = '';
+                    document.getElementById('relatorioResultado').innerHTML = '';
+                    
+                    // Atualizar interfaces
+                    atualizarSelectProdutos();
+                    atualizarTabelaProdutos();
+                    atualizarTabelaAplicacoes();
+                    atualizarTabelaProdutosAplicacao();
+                    atualizarEstatisticas();
+                    
+                    mostrarNotificacao('✅ Todos os dados foram removidos com sucesso!', 'success');
+                }
+            }
+        }
+
+        // ===== NOTIFICAÇÕES =====
+        function mostrarNotificacao(mensagem, tipo = 'info') {
+            // Remover notificação existente
+            const notificacaoExistente = document.querySelector('.notificacao');
+            if (notificacaoExistente) {
+                notificacaoExistente.remove();
+            }
+
+            const cores = {
+                success: { bg: '#d4edda', border: '#c3e6cb', text: '#155724' },
+                error: { bg: '#f8d7da', border: '#f5c6cb', text: '#721c24' },
+                warning: { bg: '#fff3cd', border: '#ffeeba', text: '#856404' },
+                info: { bg: '#d1ecf1', border: '#bee5eb', text: '#0c5460' }
+            };
+
+            const cor = cores[tipo] || cores.info;
+
+            const notificacao = document.createElement('div');
+            notificacao.className = 'notificacao';
+            notificacao.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${cor.bg};
+                color: ${cor.text};
+                border: 1px solid ${cor.border};
+                border-left: 4px solid ${cor.border};
+                padding: 15px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                max-width: 400px;
+                z-index: 10000;
+                font-weight: 500;
+                white-space: pre-line;
+                animation: slideIn 0.3s ease-out;
+            `;
+
+            // Adicionar estilo de animação
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes slideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+            `;
+            
+            if (!document.querySelector('#notificacao-style')) {
+                style.id = 'notificacao-style';
+                document.head.appendChild(style);
+            }
+
+            notificacao.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <span>${mensagem}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" 
+                            style="background: none; border: none; font-size: 18px; cursor: pointer; margin-left: 10px; color: ${cor.text};">
+                        ×
+                    </button>
+                </div>
+            `;
+
+            document.body.appendChild(notificacao);
+
+            // Auto-remover após 5 segundos
+            setTimeout(() => {
+                if (notificacao && notificacao.parentNode) {
+                    notificacao.style.animation = 'slideOut 0.3s ease-in';
+                    setTimeout(() => {
+                        if (notificacao && notificacao.parentNode) {
+                            notificacao.remove();
+                        }
+                    }, 300);
+                }
+            }, 5000);
+        }
+
+        // ===== SERVICE WORKER PARA PWA =====
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('✅ Service Worker registrado com sucesso:', registration);
+                    })
+                    .catch(function(error) {
+                        console.log('❌ Falha ao registrar Service Worker:', error);
+                    });
+            });
+        }
+
+        // ===== EVENTOS DO TECLADO =====
+        document.addEventListener('keydown', function(e) {
+            // Ctrl + S para salvar (prevenir comportamento padrão)
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                exportarDados();
+            }
+            
+            // Ctrl + Enter para salvar aplicação
+            if (e.ctrlKey && e.key === 'Enter') {
+                const abaAplicacoes = document.getElementById('aplicacoes');
+                if (abaAplicacoes.classList.contains('active')) {
+                    salvarAplicacao();
+                }
+            }
+            
+            // Escape para limpar campos
+            if (e.key === 'Escape') {
+                limparCamposProduto();
+                document.getElementById('areaHectares').value = '';
+                document.getElementById('descricaoAplicacao').value = '';
+            }
+        });
+
+        // ===== ANIMAÇÕES E EFEITOS =====
+        function adicionarEfeitosVisuais() {
+            // Adicionar efeito de hover nas cards de estatística
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px) scale(1.02)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+        }
+
+        // Executar quando a página carregar
+        window.addEventListener('load', adicionarEfeitosVisuais);
+
+        // ===== MODO OFFLINE =====
+        window.addEventListener('online', function() {
+            mostrarNotificacao('🌐 Conexão restaurada!', 'success');
+        });
+
+        window.addEventListener('offline', function() {
+            mostrarNotificacao('📱 Modo offline ativado. Seus dados estão seguros!', 'warning');
+        });
+
+        console.log('🍇 Sistema Parreiral v2.0 carregado com sucesso!');
+    </script>
+</body>
+</html>
